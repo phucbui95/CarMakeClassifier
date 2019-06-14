@@ -1,5 +1,4 @@
 import time
-from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -9,6 +8,23 @@ import matplotlib.pyplot as plt
 
 from abc import abstractmethod, ABC
 from util import EarlyStopping
+
+def isnotebook():
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter
+
+if not isnotebook():
+    from tqdm import tqdm
+else:
+    from tqdm import tqdm_notebook as tqdm
 
 class IterationCallback(ABC):
     @abstractmethod
