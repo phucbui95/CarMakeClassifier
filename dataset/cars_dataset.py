@@ -8,7 +8,7 @@ import numpy as np
 
 class CarDataset(torch.utils.data.Dataset):
 
-    def __init__(self, data_mode, opt, to_tensor=True):
+    def __init__(self, data_mode, opt, to_tensor=True, image_transformer=None):
         super().__init__()
         self.opt = opt
         self.data_mode = data_mode
@@ -23,11 +23,15 @@ class CarDataset(torch.utils.data.Dataset):
         self.fine_height = opt.fine_height
         self.to_tensor = to_tensor
 
-        self.image_transformer = transforms.Compose([
+        self.default_transformer = transforms.Compose([
             transforms.Resize((self.fine_width, self.fine_height)),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
+        if image_transformer is None:
+            self.image_transformer = self.default_transformer
+        else:
+            self.image_transformer = image_transformer
 
     def name(self):
         return 'Car dataset'

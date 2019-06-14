@@ -1,16 +1,15 @@
-import sys
 import argparse
 import os
 import torch
-import models
-import data
 import pickle
+
 
 def mkdirs(path):
     if not os.path.exists(path):
         os.makedirs(path)
         return True
     return False
+
 
 class BaseOptions():
     def __init__(self):
