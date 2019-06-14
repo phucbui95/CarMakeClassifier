@@ -33,8 +33,8 @@ class BaseOptions():
         parser.add_argument('--shuffle', type=bool, default=False)
         parser.add_argument('--workers', type=int, default=4)
         parser.add_argument('--dataroot', type=str, default='./data/')
-        parser.add_argument('--fine_width', type=int, default=64)
-        parser.add_argument('--fine_height', type=int, default=64)
+        parser.add_argument('--fine_width', type=int, default=224)
+        parser.add_argument('--fine_height', type=int, default=224)
 
         # logging
         parser.add_argument('--tensorboard_dir', type=str, default='tensorboard_log')

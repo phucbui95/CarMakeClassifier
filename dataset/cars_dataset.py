@@ -8,7 +8,10 @@ import numpy as np
 
 class CarDataset(torch.utils.data.Dataset):
 
-    def __init__(self, data_mode, opt, to_tensor=True, image_transformer=None):
+    def __init__(self, data_mode, opt,
+                 to_tensor=True,
+                 image_transformer=None,
+                 is_train=True):
         super().__init__()
         self.opt = opt
         self.data_mode = data_mode
@@ -22,6 +25,7 @@ class CarDataset(torch.utils.data.Dataset):
         self.fine_width = opt.fine_width
         self.fine_height = opt.fine_height
         self.to_tensor = to_tensor
+        self.is_train = is_train
 
         self.default_transformer = transforms.Compose([
             transforms.Resize((self.fine_width, self.fine_height)),
@@ -63,8 +67,14 @@ class CarDataset(torch.utils.data.Dataset):
         if self.to_tensor:
             im = self.image_transformer(im)
         #             class_ = to_categorical(class_, 196)
+        if not self.is_train: class_ = 0
         assert class_ >= 0 and class_ < 196
-        return (im, class_)
+
+        return {
+            'data' : im,
+            'class' : class_,
+            'id' : fname
+        }
 
     def __len__(self):
         return len(self.data_list)

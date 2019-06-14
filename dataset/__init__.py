@@ -7,7 +7,7 @@ import numpy as np
 def get_cars_datasets(opt, valid_size=0.1, tfs=None):
     """ Create data loaders """
     train_set = CarDataset('train', opt, image_transformer=tfs)
-    test_set = CarDataset('test', opt, image_transformer=tfs)
+    test_set = CarDataset('test', opt, image_transformer=tfs, is_train=False)
 
     indices = list(range(len(train_set)))
     np.random.shuffle(indices)
@@ -24,7 +24,7 @@ def get_cars_datasets(opt, valid_size=0.1, tfs=None):
                                                sampler=valid_sampler,
                                                num_workers=opt.workers)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size,
-                                               sampler=valid_sampler,
+                                               sampler=None, shuffle=False,
                                                num_workers=opt.workers)
     return {
         'train' : train_loader,

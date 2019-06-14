@@ -84,7 +84,7 @@ class BaseTrainer(ABC):
         self.device = device
 
     def run_one_step(self, model, batch_data, phase):
-        data, target = batch_data
+        data, target = batch_data['data'], batch_data['class']
         data, target = Variable(data), Variable(target)
 
         if self.device.type != 'cpu':
@@ -129,11 +129,13 @@ class BaseTrainer(ABC):
                 running_corrects = 0
 
                 dataloader = iter(dataloaders[phase])
-                for batch_idx, (data, target) in tqdm(
+                for batch_idx, batch_data in tqdm(
                         enumerate(dataloader), leave=False,
                         total=len(dataloader)):
+
+                    data, target = batch_data['data'], batch_data['class']
                     running_corrects_, running_loss_ = self.run_one_step(model,
-                                                                         (data, target),
+                                                                         batch_data,
                                                                          phase)
                     accuracy = float(running_corrects) / ((batch_idx + 1) * batch_size)
                     metrics = dict(accuracy=accuracy,

@@ -1,25 +1,20 @@
-from options.base_options import BaseOptions
-from dataset.cars_dataset import CarDataset
-from dataset.data_loaders import DataLoader
-from dataset import get_cars_datasets
-from util import convert_batch_to_image, plot_images, EarlyStopping
-from utils.lr_finders import LRFinder
-
-import time
-from tqdm import tqdm
+import os.path as osp
 
 import torch
-import torch.nn as nn
-from torch.autograd import Variable
-import torch.optim as optim
-import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+
+from dataset import get_cars_datasets
+from dataset.cars_dataset import CarDataset
+from dataset.data_loaders import DataLoader
 from models import BaseModel
+from options.base_options import BaseOptions
+from trainer import BaseTrainer, IterationCallback
 from utils.auto_augment import ImageNetPolicy
 from utils.preprocess import Cutout
-from trainer import BaseTrainer, IterationCallback
 from utils.visualization import SummaryWriter
-import os.path as osp
+
+import matplotlib.pyplot as plt
+from util import convert_batch_to_image, plot_images
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -70,13 +65,14 @@ if __name__ == '__main__':
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-    dataset = CarDataset('train', opt, image_transformer=tfs)
+    dataset = CarDataset('train', opt, image_transformer=None)
     data_loader = DataLoader(opt, dataset)
 
-    # sample_batch, _ = data_loader.next_batch()
-    # imgs = convert_batch_to_image(sample_batch)
-    # plot_images(imgs[:4])
-    # plt.show()
+    batch = data_loader.next_batch()
+    sample_batch = batch['data']
+    imgs = convert_batch_to_image(sample_batch)
+    plot_images(imgs[:4])
+    plt.show()
 
     train(opt)
 
