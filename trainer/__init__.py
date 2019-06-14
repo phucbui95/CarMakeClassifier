@@ -28,7 +28,7 @@ else:
 
 class IterationCallback(ABC):
     @abstractmethod
-    def end_valid_iteration(self, epoch_loss, epoch_acc):
+    def update_metrics(self, metrics, phase):
         pass
 
 class MetricsTracker:
@@ -46,6 +46,9 @@ class MetricsTracker:
 
         self.dataloaders = dataloaders
         self.batch_idx = 0
+
+    def update_metrics(self, metrics, phase):
+        pass
 
     def end_valid_iteration(self, epoch_loss, epoch_acc):
         self.val_losses.append(epoch_loss)
@@ -99,13 +102,15 @@ class BaseTrainer(ABC):
         running_corrects = torch.sum(preds == target.data)
         running_loss = loss.item() * data.size(0)
 
-        if (phase == 'train'):
+        if phase == 'train':
             loss.backward()
             model.optimizer.step()
 
         return running_corrects, running_loss
 
-    def run_train(self, model, dataloaders, num_epochs=10):
+    def run_train(self, model, dataloaders, num_epochs=10, callbacks=None):
+        if callbacks is None:
+            callbacks = []
         model.to(self.device)
         earlystop = EarlyStopping(patience=20,
                                   verbose=True,
@@ -115,7 +120,7 @@ class BaseTrainer(ABC):
 
         for epoch in tqdm(range(num_epochs)):
             print('Epoch:', epoch)
-            for phase in ['train', 'val']:
+            for phase in ['train', 'valid']:
                 if phase == ' train':
                     model.train()
                 else:
@@ -127,16 +132,24 @@ class BaseTrainer(ABC):
                 for batch_idx, (data, target) in tqdm(
                         enumerate(dataloader), leave=False,
                         total=len(dataloader)):
-                    running_corrects_, running_loss_ = self.run_one_step(model, (data, target), phase)
+                    running_corrects_, running_loss_ = self.run_one_step(model,
+                                                                         (data, target),
+                                                                         phase)
+                    accuracy = float(running_corrects) / ((batch_idx + 1) * batch_size)
+                    metrics = dict(accuracy=accuracy,
+                                   loss=running_loss_ / data.size(0))
+                    if batch_idx % self.opt.display_count == 0:
+                        for cb in callbacks:
+                            cb.update_metrics(metrics, phase)
+
                     running_corrects += running_corrects_
                     running_loss += running_loss_
 
-                epoch_acc = running_corrects.double() / (
-                        len(dataloaders[phase]) * batch_size)
+                epoch_acc = running_corrects.double() / (len(dataloaders[phase]) * batch_size)
                 epoch_loss = running_loss / (
                             len(dataloaders[phase]) * batch_size)
 
-                if phase == 'val':
+                if phase == 'valid':
                     tracker.end_valid_iteration(epoch_loss, epoch_acc.item())
                     earlystop(epoch_loss, model)
 

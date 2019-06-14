@@ -1,0 +1,5 @@
+tensorboardX
+pandas
+matplotlib
+numpy
+seaborn

@@ -19,13 +19,13 @@ def get_cars_datasets(opt, valid_size=0.1, tfs=None):
     batch_size = opt.batchSize
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size,
                                                sampler=train_sampler,
-                                               num_workers=2)
+                                               num_workers=opt.workers)
     valid_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size,
                                                sampler=valid_sampler,
-                                               num_workers=2)
+                                               num_workers=opt.workers)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size,
                                                sampler=valid_sampler,
-                                               num_workers=2)
+                                               num_workers=opt.workers)
     return {
         'train' : train_loader,
         'valid' : valid_loader,
