@@ -40,7 +40,7 @@ class BaseOptions():
 
         # logging
         parser.add_argument('--tensorboard_dir', type=str, default='tensorboard_log')
-        parser.add_argument('--display_count', type=int, default=1)
+        parser.add_argument('--display_count', type=int, default=100)
 
         parser.add_argument('--load_from_opt_file', action='store_true',
                             help='load the options from checkpoints and use that as default')

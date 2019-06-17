@@ -2,7 +2,8 @@
 
 # Approach
 
-In this project, i used several feature extraction networks such as ResNet, VGG, EffNet
+In this project, i used several feature extraction networks such as ResNet, EffNet
+
  
 
 # Installation
@@ -37,4 +38,4 @@ python test.py
 
 By default, the output will be written to `outputs` folder.
 
-# Results
+# 
