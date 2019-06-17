@@ -1,4 +1,4 @@
-from models import BaseModel
+from models.base_model import RNModel
 from options.base_options import BaseOptions
 from dataset import get_cars_datasets
 import torch
@@ -46,12 +46,19 @@ if __name__ == '__main__':
     option_parser = BaseOptions()
     opt = option_parser.parse()
 
+
     dataloaders = get_cars_datasets(opt)
     testloader = dataloaders['test']
     n_classes = 196
-    clf = BaseModel(n_classes)
+    clf = RNModel(n_classes)
+
+    if not torch.cuda.is_available():
+        clf.load_state_dict(torch.load(opt.saved_model, map_location='cpu'))
+    else:
+        clf.load_state_dict(torch.load(opt.saved_model))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     df_submission = inference(clf, testloader, device=device)
     df_submission.to_csv('outputs/submission.csv', index=False)
 

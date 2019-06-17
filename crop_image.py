@@ -65,5 +65,5 @@ if __name__ == '__main__':
     train_df = load_meta(cars_train_annos, 'train')
     test_df = load_meta(cars_test_annos, 'test')
 
-    # crop_image(opt, train_df, osp.join(opt.dataroot, 'cars_train' + '_cropped'), 'train')
+    crop_image(opt, train_df, osp.join(opt.dataroot, 'cars_train' + '_cropped'), 'train')
     crop_image(opt, test_df, osp.join(opt.dataroot, 'cars_test' + '_cropped'), 'test')

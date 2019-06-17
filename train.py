@@ -6,13 +6,13 @@ import torchvision.transforms as transforms
 from dataset import get_cars_datasets
 from dataset.cars_dataset import CarDataset
 from dataset.data_loaders import DataLoader
-from models import BaseModel
+from models.base_model import RNModel
 from options.base_options import BaseOptions
 from trainer import BaseTrainer, IterationCallback
 from utils.auto_augment import ImageNetPolicy
 from utils.preprocess import Cutout
 from utils.visualization import SummaryWriter
-
+from PIL import Image
 import matplotlib.pyplot as plt
 from util import convert_batch_to_image, plot_images
 
@@ -34,71 +34,32 @@ class TensorboardCallback(IterationCallback):
                                                     metrics['accuracy']))
         self.step += 1
 
-def train(opt):
+
+def train(dataloaders, model, opt, num_epochs=10):
     trainer = BaseTrainer(opt, device)
-
-    tfs = transforms.Compose([
-        transforms.Resize((opt.fine_width, opt.fine_height)),
-        ImageNetPolicy(),
-        transforms.ToTensor(),
-        Cutout(4, opt.fine_width * 0.25),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-
-    dataloaders = get_cars_datasets(opt, valid_size=0.1, tfs=tfs)
-    n_classes = 196
-    model = BaseModel(n_classes)
     board = TensorboardCallback(opt)
-    trainer.run_train(model, dataloaders, callbacks=[board])
-
-
-train_annos_path = 'devkit/cars_train_annos.mat'
-test_annos_path = 'cars_test_annos_withlabels.mat'
-classes_path = 'devkit/cars_meta.mat'
-
-path = 'data'
-
-import scipy.io as sio
-import pandas as pd
-
-
-def get_labels(annos_path, classes_path):
-    car_annos = sio.loadmat(path + annos_path)
-    car_meta = sio.loadmat(path + classes_path)
-    annotations = car_annos["annotations"][0, :]
-    nclasses = len(car_meta["class_names"][0])
-    class_names = dict(
-        zip(range(1, nclasses), [c[0] for c in car_meta["class_names"][0]]))
-
-    labelled_images = {}
-    dataset = []
-    for i, arr in enumerate(annotations):
-        # the last entry in the row is the image name
-        # The rest is the data, first bbox, then classid
-        dataset.append([y[0][0] for y in arr][0:5] + [arr[5][0]])
-    # Convert to a DataFrame, and specify the column names
-    temp_df = pd.DataFrame(dataset,
-                           columns=['BBOX_X1', 'BBOX_Y1', 'BBOX_X2', 'BBOX_Y2',
-                                    'ClassID', 'filename'])
-
-    temp_df = temp_df.assign(ClassName=temp_df.ClassID.map(dict(class_names)))
-    temp_df.columns = ['bbox_x1', 'bbox_y1', 'bbox_x2', 'bbox_y2', 'class_id',
-                       'filename', 'class_name']
-    return temp_df
+    trainer.run_train(model, dataloaders, callbacks=[board], num_epochs=num_epochs)
+    return model
 
 if __name__ == '__main__':
     option_parser = BaseOptions()
     opt = option_parser.parse()
 
-    tfs = transforms.Compose([
-        transforms.Resize((opt.fine_width, opt.fine_height)),
-        ImageNetPolicy(),
-        transforms.ToTensor(),
-        Cutout(4, opt.fine_width * 0.25),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+    aug = [
+        transforms.ColorJitter(hue=.05, saturation=.05),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(20, resample=Image.BILINEAR)
+    ]
 
-    dataset = CarDataset('train', opt, image_transformer=None)
+    tf_list = [transforms.Resize((opt.fine_width, opt.fine_height))] + aug + \
+              [transforms.ToTensor(),
+               Cutout(4, opt.fine_width * 0.25),
+               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+               ]
+
+    tfs = transforms.Compose(tf_list)
+
+    dataset = CarDataset('train', opt, image_transformer=tfs)
     data_loader = DataLoader(opt, dataset)
 
     batch = data_loader.next_batch()
@@ -107,15 +68,18 @@ if __name__ == '__main__':
     plot_images(imgs[:4])
     plt.show()
 
-    train(opt)
+    dataloaders = get_cars_datasets(opt, valid_size=0.1, tfs=tfs)
+    n_classes = 196
+    model = RNModel(n_classes)
+    # Freeze first layers and train some epochs
+    train(dataloaders, model, opt, num_epochs=10)
 
-    # n_classes = 196
-    # classifier = Classifier(n_classes)
-    #
-    # dataloaders = get_cars_datasets(opt, valid_size=0.1)
-    # train_loader, valid_loader = dataloaders['train'], dataloaders['valid']
-    #
-    # criterion = nn.CrossEntropyLoss()
+    # Unfreeze all model parameters and train
+    for param in model.parameters():
+        param.require_grad = True
+
+    train(dataloaders, model, opt, num_epochs=20)
+
 
     # optimizer_ft = optim.Adam(classifier.parameters(), lr=0.0000001)
     # lr_finder = LRFinder(classifier, optimizer_ft, criterion, device=device)

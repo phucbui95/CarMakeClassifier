@@ -27,6 +27,8 @@ class BaseOptions():
         parser.add_argument('--checkpoints_dir', type=str,
                             default='./checkpoints',
                             help='models are saved here')
+        parser.add_argument('--saved_model', type=str, default='checkpoint_resnet.pt',
+                            help='pretrained model')
         # input/output sizes
         parser.add_argument('--batchSize', type=int, default=32,
                             help='input batch size')

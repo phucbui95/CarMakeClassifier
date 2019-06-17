@@ -2,6 +2,9 @@
 
 # Approach
 
+In this project, i used several feature extraction networks such as ResNet, VGG, EffNet
+ 
+
 # Installation
 
 This project was written and test on `python3.6` and `pytorchv1`
