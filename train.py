@@ -34,8 +34,6 @@ class TensorboardCallback(IterationCallback):
                                                     metrics['accuracy']))
         self.step += 1
 
-
-
 def train(opt):
     trainer = BaseTrainer(opt, device)
 
@@ -52,6 +50,41 @@ def train(opt):
     model = BaseModel(n_classes)
     board = TensorboardCallback(opt)
     trainer.run_train(model, dataloaders, callbacks=[board])
+
+
+train_annos_path = 'devkit/cars_train_annos.mat'
+test_annos_path = 'cars_test_annos_withlabels.mat'
+classes_path = 'devkit/cars_meta.mat'
+
+path = 'data'
+
+import scipy.io as sio
+import pandas as pd
+
+
+def get_labels(annos_path, classes_path):
+    car_annos = sio.loadmat(path + annos_path)
+    car_meta = sio.loadmat(path + classes_path)
+    annotations = car_annos["annotations"][0, :]
+    nclasses = len(car_meta["class_names"][0])
+    class_names = dict(
+        zip(range(1, nclasses), [c[0] for c in car_meta["class_names"][0]]))
+
+    labelled_images = {}
+    dataset = []
+    for i, arr in enumerate(annotations):
+        # the last entry in the row is the image name
+        # The rest is the data, first bbox, then classid
+        dataset.append([y[0][0] for y in arr][0:5] + [arr[5][0]])
+    # Convert to a DataFrame, and specify the column names
+    temp_df = pd.DataFrame(dataset,
+                           columns=['BBOX_X1', 'BBOX_Y1', 'BBOX_X2', 'BBOX_Y2',
+                                    'ClassID', 'filename'])
+
+    temp_df = temp_df.assign(ClassName=temp_df.ClassID.map(dict(class_names)))
+    temp_df.columns = ['bbox_x1', 'bbox_y1', 'bbox_x2', 'bbox_y2', 'class_id',
+                       'filename', 'class_name']
+    return temp_df
 
 if __name__ == '__main__':
     option_parser = BaseOptions()

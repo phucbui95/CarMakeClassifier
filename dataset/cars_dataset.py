@@ -2,6 +2,7 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 import os
+import os.path as osp
 import scipy.io
 import pandas as pd
 import numpy as np
@@ -11,7 +12,8 @@ class CarDataset(torch.utils.data.Dataset):
     def __init__(self, data_mode, opt,
                  to_tensor=True,
                  image_transformer=None,
-                 is_train=True):
+                 is_train=True,
+                 data_folder=None):
         super().__init__()
         self.opt = opt
         self.data_mode = data_mode
@@ -37,12 +39,19 @@ class CarDataset(torch.utils.data.Dataset):
         else:
             self.image_transformer = image_transformer
 
+        self.cars_meta_path = osp.join(self.data_folder, 'devkit/cars_meta.mat')
+        if data_folder is None:
+            self.cars_data_path = osp.join(self.data_folder, 'cars_' + self.data_mode)
+        else:
+            self.cars_data_path = data_folder
+
+
     def name(self):
         return 'Car dataset'
 
     def load_meta_data(self, file_path=None):
         if file_path is None:
-            file_path = os.path.join(self.data_folder, 'devkit/cars_meta.mat')
+            file_path = self.cars_meta_path
         cars_meta = scipy.io.loadmat(file_path)
         car_names = [str(n[0]) for n in cars_meta['class_names'][0]]
         car_index = range(1, 1 + len(car_names))

@@ -19,7 +19,7 @@ class BaseOptions():
     def initialize(self, parser):
         # experiment specifics
         # experiment specifics
-        parser.add_argument('--name', type=str, default='label2coco',
+        parser.add_argument('--name', type=str, default='carmodel',
                             help='name of the experiment. It decides where to store samples and models')
 
         parser.add_argument('--gpu_ids', type=str, default='-1',

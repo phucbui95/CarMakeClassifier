@@ -11,6 +11,7 @@ from tqdm import tqdm as tqdm
 def inference(model, dataloader, device):
     model.eval()
     model.to(device)
+
     with torch.no_grad():
         ids = []
         prediction = []
@@ -30,7 +31,6 @@ def inference(model, dataloader, device):
             ids.append(id)
             prediction.append(pred)
             i += 1
-            if i % 2 == 0: break
 
     id_col = np.hstack(ids).reshape(-1, 1)
     pred_col = np.vstack(prediction)
