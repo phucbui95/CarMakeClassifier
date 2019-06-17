@@ -37,3 +37,14 @@ python test.py
 ```
 
 By default, the output will be written to `outputs` folder.
+
+## Result
+
+The model could archieve *80.1%* accuracy (it maybe different when you reproduce results).
+It seems that results are very for simple arch and there are many ways to improve
+
+- [ ] Learning rate [Link](https://www.fast.ai/2018/07/02/adam-weight-decay/)
+- [ ] Data augmentation
+- [ ] Use better pretrained feature extraction model
+- [ ] GAN for generate new images
+- [ ] Capsules network
