@@ -78,7 +78,7 @@ if __name__ == '__main__':
     for param in model.parameters():
         param.require_grad = True
 
-    train(dataloaders, model, opt, num_epochs=20)
+    train(dataloaders, model, opt, num_epochs=200)
 
 
     # optimizer_ft = optim.Adam(classifier.parameters(), lr=0.0000001)
